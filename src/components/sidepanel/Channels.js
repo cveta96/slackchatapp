@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import firebase from "../../firebase";
-import { setCurrentChannel } from "../../actions/index";
+import { setCurrentChannel, setPrivateChannel } from "../../actions/index";
 import { connect } from "react-redux";
 import {
   Menu,
@@ -40,6 +40,7 @@ class Channels extends Component {
   changeChannel = channel => {
     this.setActiveChannel(channel);
     this.props.setCurrentChannel(channel);
+    this.props.setPrivateChannel(false);
   };
 
   setActiveChannel = channel => {
@@ -124,7 +125,7 @@ class Channels extends Component {
 
     return (
       <React.Fragment>
-        <Menu.Menu style={{ paddingBottom: "2em" }}>
+        <Menu.Menu className="menu">
           <Menu.Item>
             <span>
               <Icon name="exchange" /> CHANNELS
@@ -173,5 +174,5 @@ class Channels extends Component {
 
 export default connect(
   null,
-  { setCurrentChannel }
+  { setCurrentChannel, setPrivateChannel }
 )(Channels);

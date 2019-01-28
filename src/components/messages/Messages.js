@@ -7,6 +7,8 @@ import Message from "./Message";
 
 class Messages extends Component {
   state = {
+    privateMessagesRef: firebase.database().ref("privateMessages"),
+    privateChannel: this.props.isPrivateChannel,
     messagesRef: firebase.database().ref("messages"),
     channel: this.props.currentChannel,
     user: this.props.currentUser,
@@ -25,13 +27,19 @@ class Messages extends Component {
     }
   }
 
+  getMessagesRef = () => {
+    const { messagesRef, privateMessagesRef, privateChannel } = this.state;
+    return privateChannel ? privateMessagesRef : messagesRef;
+  };
+
   addListeners = channelId => {
     this.addMessageListener(channelId);
   };
 
   addMessageListener = channelId => {
+    const ref = this.getMessagesRef();
     let loadedMessages = [];
-    this.state.messagesRef.child(channelId).on("child_added", snap => {
+    ref.child(channelId).on("child_added", snap => {
       loadedMessages.push(snap.val());
       console.log(loadedMessages);
       this.setState({
@@ -88,7 +96,11 @@ class Messages extends Component {
       />
     ));
 
-  displayChannelName = channel => (channel ? `#${channel.name}` : "");
+  displayChannelName = channel => {
+    return channel
+      ? `${this.state.privateChannel ? "@ " : "# "}${channel.name}`
+      : "";
+  };
 
   render() {
     const {
@@ -99,7 +111,8 @@ class Messages extends Component {
       numUniqueUsers,
       searchResults,
       searchTerm,
-      searchLoading
+      searchLoading,
+      privateChannel
     } = this.state;
     return (
       <Fragment>
@@ -108,6 +121,7 @@ class Messages extends Component {
           numUniqueUsers={numUniqueUsers}
           channelName={this.displayChannelName(channel)}
           searchLoading={searchLoading}
+          isPrivateChannel={privateChannel}
         />
 
         <Segment>
@@ -122,6 +136,8 @@ class Messages extends Component {
           messagesRef={messagesRef}
           currentChannel={channel}
           currentUser={user}
+          isPrivateChannel={privateChannel}
+          getMessagesRef={this.getMessagesRef}
         />
       </Fragment>
     );
