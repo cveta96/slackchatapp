@@ -4,6 +4,8 @@ import MessagesHeader from "./MessagesHeader";
 import MessagesForm from "./MessagesForm";
 import firebase from "../../firebase";
 import Message from "./Message";
+import { connect } from "react-redux";
+import { setUserPosts } from "../../actions";
 
 class Messages extends Component {
   state = {
@@ -96,7 +98,23 @@ class Messages extends Component {
         messagesLoading: false
       });
       this.countUniqueUsers(loadedMessages);
+      this.countUsersPosts(loadedMessages);
     });
+  };
+
+  countUsersPosts = messages => {
+    let userPosts = messages.reduce((acc, message) => {
+      if (message.user.name in acc) {
+        acc[message.user.name].count += 1;
+      } else {
+        acc[message.user.name] = {
+          avatar: message.user.avatar,
+          count: 1
+        };
+      }
+      return acc;
+    }, {});
+    this.props.setUserPosts(userPosts);
   };
 
   handleSearchChange = e => {
@@ -196,4 +214,7 @@ class Messages extends Component {
   }
 }
 
-export default Messages;
+export default connect(
+  null,
+  { setUserPosts }
+)(Messages);
