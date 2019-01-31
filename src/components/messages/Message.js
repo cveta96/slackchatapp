@@ -2,9 +2,8 @@ import React from "react";
 import { Image, Comment } from "semantic-ui-react";
 import moment from "moment";
 
-const isOwnMessage = (message, user) => {
-  return message.user.id === user.uid ? "message__self" : "";
-};
+const isOwnMessage = (message, user) =>
+  message.user.id === user.uid ? "message__self" : "";
 
 const timeFromNow = timestamp => moment(timestamp).fromNow();
 
