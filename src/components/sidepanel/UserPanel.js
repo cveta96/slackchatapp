@@ -90,7 +90,7 @@ class UserPanel extends Component {
     const { storageRef, userRef, blop, metadata } = this.state;
 
     storageRef
-      .child(`avatar/user-${userRef.uid}`)
+      .child(`avatar/user/${userRef.uid}`)
       .put(blop, metadata)
       .then(snap => {
         snap.ref.getDownloadURL().then(downloadUrl => {
