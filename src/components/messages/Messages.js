@@ -25,15 +25,22 @@ class Messages extends Component {
     usersRef: firebase.database().ref("users"),
     typingRef: firebase.database().ref("typing"),
     typingUsers: [],
-    connectedRef: firebase.database().ref(".info/connected")
+    connectedRef: firebase.database().ref(".info/connected"),
+    listeners: []
   };
 
   componentDidMount() {
-    const { channel, user } = this.state;
+    const { channel, user, listeners } = this.state;
     if (channel && user) {
+      this.removeListeners(listeners);
       this.addListeners(channel.id);
       this.addUserStarListener(channel.id, user.uid);
     }
+  }
+
+  componentWillUnmount() {
+    this.removeListeners(this.state.listeners);
+    this.state.connectedRef.off();
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -41,6 +48,24 @@ class Messages extends Component {
       this.schrollToBottom();
     }
   }
+
+  removeListeners = listeners => {
+    listeners.forEach(listener => {
+      listener.ref.child(listener.id).off(listener.event);
+    });
+  };
+
+  addToListeners = (id, ref, event) => {
+    const index = this.state.listeners.findIndex(listener => {
+      return (
+        listener.id === id && listener.ref === ref && listener.event === event
+      );
+    });
+    if (index === -1) {
+      const newListener = { id, ref, event };
+      this.setState({ listeners: this.state.listeners.concat(newListener) });
+    }
+  };
 
   schrollToBottom = () => {
     this.messagesEnd.scrollIntoView({ behavior: "smooth" });
@@ -114,7 +139,7 @@ class Messages extends Component {
         this.setState({ typingUsers });
       }
     });
-
+    this.addToListeners(channelId, this.state.typingRef, "child_added");
     this.state.typingRef.child(channelId).on("child_removed", snap => {
       const index = typingUsers.findIndex(user => user.id === snap.key);
       if (index !== -1) {
@@ -122,6 +147,7 @@ class Messages extends Component {
         this.setState({ typingUsers });
       }
     });
+    this.addToListeners(channelId, this.state.typingRef, "child_removed");
 
     this.state.connectedRef.on("value", snap => {
       if (snap.val() === true) {
@@ -150,6 +176,7 @@ class Messages extends Component {
       this.countUniqueUsers(loadedMessages);
       this.countUsersPosts(loadedMessages);
     });
+    this.addToListeners(channelId, ref, "child_added");
   };
 
   countUsersPosts = messages => {
